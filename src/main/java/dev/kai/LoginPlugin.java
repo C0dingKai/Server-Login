@@ -10,8 +10,10 @@ import dev.kai.listener.PlayerQuitListener;
 import dev.kai.manager.LoginManager;
 import dev.kai.manager.SessionManager;
 import dev.kai.storage.DatabaseManager;
+import dev.kai.util.task.LoginTask;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -51,12 +53,14 @@ public final class LoginPlugin extends JavaPlugin {
         new LoginCommand();
         new RegisterCommand();
 
+        new LoginTask().runTaskTimer(this, 0, 20);
 
     }
 
     @Override
     public void onDisable() {
         if (databaseManager != null) databaseManager.shutdown();
+        Bukkit.getScheduler().cancelTasks(this);
         PacketEvents.getAPI().terminate();
     }
 }

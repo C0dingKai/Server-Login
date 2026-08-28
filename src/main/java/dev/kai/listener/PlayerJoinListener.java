@@ -38,7 +38,6 @@ public class PlayerJoinListener implements Listener {
         loginManager.exist(player.getUniqueId()).thenAccept(exists -> {
             if (exists) {
                 player.sendRichMessage("<red>You need to be logged in before you can do anything");
-                player.sendActionBar(ColorUtil.parse("<red>You need to be logged in before you can do anything"));
             } else {
                 player.sendRichMessage("<red>You are not registered. Use /register <password>");
             }
