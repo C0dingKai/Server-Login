@@ -1,0 +1,17 @@
+[versions]
+paper = "1.21.4-R0.1-SNAPSHOT"
+run-paper = "2.3.1"
+shadow = "9.4.1"
+lombok = "1.18.42"
+
+placeholderapi = "2.11.6"
+packetevents = "2.13.0"
+
+[libraries]
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
+packetevents = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents" }
+
+[plugins]
+run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
