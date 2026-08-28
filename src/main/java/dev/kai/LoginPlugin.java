@@ -37,8 +37,6 @@ public final class LoginPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
 
-
-
         databaseManager = new DatabaseManager(getDataFolder());
         databaseManager.connect();
 
