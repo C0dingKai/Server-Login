@@ -1,0 +1,6 @@
+name: Login
+version: '1.0.0'
+main: dev.kai.LoginPlugin
+api-version: '1.21'
+author: [ C0dingKai ]
+load: POSTWORLD

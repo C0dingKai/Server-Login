@@ -3,7 +3,12 @@ package dev.kai;
 import com.github.retrooper.packetevents.PacketEvents;
 import dev.kai.commands.impl.LoginCommand;
 import dev.kai.commands.impl.RegisterCommand;
+import dev.kai.listener.EntityDamageListener;
+import dev.kai.listener.EntityPickupItemListener;
+import dev.kai.listener.PlayerChatListener;
 import dev.kai.listener.PlayerCommandPreprocessListener;
+import dev.kai.listener.PlayerDropItemListener;
+import dev.kai.listener.PlayerInteractListener;
 import dev.kai.listener.PlayerJoinListener;
 import dev.kai.listener.PlayerMoveListener;
 import dev.kai.listener.PlayerQuitListener;
@@ -48,6 +53,11 @@ public final class LoginPlugin extends JavaPlugin {
         new PlayerJoinListener();
         new PlayerQuitListener();
         new PlayerMoveListener();
+        new PlayerChatListener();
+        new PlayerInteractListener();
+        new PlayerDropItemListener();
+        new EntityPickupItemListener();
+        new EntityDamageListener();
         new PlayerCommandPreprocessListener();
 
         new LoginCommand();

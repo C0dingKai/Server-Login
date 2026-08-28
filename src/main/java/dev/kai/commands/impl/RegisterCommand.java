@@ -6,7 +6,7 @@ import dev.kai.manager.LoginManager;
 import dev.kai.manager.SessionManager;
 import dev.kai.model.Login;
 import dev.kai.util.ColorUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
  * @author Kai
  * @since 8/28/2026
  */
-@Slf4j
 public class RegisterCommand extends BukkitCommand {
 
     private final @NotNull LoginManager loginManager = LoginPlugin.getInstance().getLoginManager();
@@ -40,8 +39,7 @@ public class RegisterCommand extends BukkitCommand {
             return;
         }
 
-
-        loginManager.exist(player.getUniqueId()).thenAccept(exists -> {
+        loginManager.exist(player.getUniqueId()).thenAccept(exists -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
             if (exists) {
                 player.sendRichMessage("<red>You already have registered");
                 player.sendActionBar(ColorUtil.parse("<red>You already have registered"));
@@ -51,13 +49,13 @@ public class RegisterCommand extends BukkitCommand {
             }
 
             final Login login = new Login(player.getUniqueId(), args[0]);
-            loginManager.register(login).thenRun(() -> {
+            loginManager.register(login).thenRun(() -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
                 sessionManager.login(player);
                 player.sendRichMessage("<green>You have successfully registered");
                 player.sendActionBar(ColorUtil.parse("<green>You have successfully registered"));
 
                 player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-            });
-        });
+            }));
+        }));
     }
 }

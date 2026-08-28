@@ -5,6 +5,7 @@ import dev.kai.commands.BukkitCommand;
 import dev.kai.manager.LoginManager;
 import dev.kai.manager.SessionManager;
 import dev.kai.util.ColorUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -37,11 +38,10 @@ public class LoginCommand extends BukkitCommand {
             return;
         }
 
-
         final var password = args[0];
 
         loginManager.find(player.getUniqueId())
-                .thenAccept(login -> {
+                .thenAccept(login -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
 
                     if (login == null) {
                         player.sendRichMessage("<red>You haven't created an account yet");
@@ -59,7 +59,6 @@ public class LoginCommand extends BukkitCommand {
                         return;
                     }
 
-
                     if (!login.password().equals(password)) {
                         player.sendRichMessage("<red>The password is incorrect");
                         player.sendActionBar(ColorUtil.parse("<red>The password is incorrect"));
@@ -73,6 +72,6 @@ public class LoginCommand extends BukkitCommand {
                     player.sendActionBar(ColorUtil.parse("<green>You have successfully logged in"));
 
                     player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                });
+                }));
     }
 }
