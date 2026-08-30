@@ -1,43 +1,172 @@
 package dev.kai.storage;
 
-import dev.kai.storage.dao.LoginDao;
-import org.jetbrains.annotations.NotNull;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import dev.kai.model.LoginHolder;
+import dev.kai.storage.DatabaseProvider;
+import dev.kai.storage.provider.LoginDatabaseProvider;
 
-import java.io.File;
-import java.sql.SQLException;
-import java.util.concurrent.CompletionException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
-public record DatabaseManager(@NotNull LoginDao loginDao) {
+/**
+ * This is an interesting Class
+ *
+ * @author yyuh
+ * @since 03.01.26
+ */
+public final class DatabaseManager {
 
-    public DatabaseManager(final File dataFolder) {
-        this(
-                new LoginDao(new File(storage(dataFolder), "login.db").getAbsolutePath())
-        );
+    private static DatabaseManager manager;
+    private boolean isConnected = false;
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+
+    private final Map<Class<?>, DatabaseProvider<?>> providers = new HashMap<>();
+
+    /**
+     * Creates a DatabaseManager and registers it as the singleton instance.
+     *
+     * The constructor sets the static `manager` reference to this newly created
+     * instance.
+     */
+    public DatabaseManager() {
+        manager = this;
     }
 
-    public void connect() {
+    /**
+     * Establishes a MongoDB connection using the given host, port, optional
+     * credentials, and selects the specified database, then registers providers.
+     *
+     * If both `username` and `password` are non-null and non-empty, credentials are
+     * included in the connection string; otherwise the connection is attempted
+     * without authentication.
+     *
+     * @param host     the MongoDB host address
+     * @param port     the MongoDB port
+     * @param username optional username for authentication (may be null or empty to
+     *                 skip authentication)
+     * @param password optional password for authentication (may be null or empty to
+     *                 skip authentication)
+     * @param database the name of the database to select after connecting
+     * @throws IllegalStateException if establishing the connection or
+     *                               initialization fails
+     */
+    public void connect(
+            final String host,
+            final int port,
+            final String username,
+            final String password,
+            final String database) {
         try {
-            loginDao.connect();
-        } catch (final SQLException e) {
-            throw new CompletionException(e);
+            final String connectionString;
+
+            if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+                connectionString = String.format("mongodb://%s:%s@%s:%d", username, password, host, port);
+            } else {
+                connectionString = String.format("mongodb://%s:%d", host, port);
+            }
+
+            final MongoClientSettings settings = MongoClientSettings.builder()
+                    .applyConnectionString(new ConnectionString(connectionString))
+                    .build();
+
+            this.mongoClient = MongoClients.create(settings);
+            this.database = mongoClient.getDatabase(database);
+            this.isConnected = true;
+        } catch (final Exception e) {
+            this.isConnected = false;
+            destroy();
+            throw new IllegalStateException(e);
+        }
+
+        register();
+    }
+
+    /**
+     * Closes the MongoDB client and releases associated resources.
+     *
+     * If no client is initialized, this method has no effect.
+     */
+    public void destroy() {
+        if (this.mongoClient != null) {
+            this.mongoClient.close();
         }
     }
 
-    public void shutdown() {
-        try {
-            loginDao.disconnect();
-        } catch (final SQLException e) {
-            throw new CompletionException(e);
+    /**
+     * Retrieve an entity of the specified class using the provided string key.
+     *
+     * @param clazz the entity class to fetch
+     * @param key   the string key identifying the entity (e.g., document id)
+     * @return an Optional containing the entity if found, or empty otherwise
+     */
+    public <T> CompletableFuture<Optional<T>> get(Class<T> clazz, String key) {
+        if (!isConnected) {
+            return CompletableFuture.completedFuture(Optional.empty());
+        }
+        return CompletableFuture.supplyAsync(() -> (Optional<T>) providers.get(clazz).get(key));
+    }
+
+    /**
+     * Saves the given entity instance for the specified entity class.
+     *
+     * @param clazz the entity class whose provider will handle the save
+     * @param t     the entity instance to persist
+     * @return a CompletableFuture that completes with null after the save operation
+     *         finishes; completes immediately with null if the database is not
+     *         connected
+     */
+    public <T> CompletableFuture<Void> save(Class<T> clazz, T t) {
+        if (!isConnected) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return CompletableFuture.supplyAsync(() -> {
+            ((DatabaseProvider<T>) providers.get(clazz)).save(t);
+            return null;
+        });
+    }
+
+    public <T> CompletableFuture<List<T>> getAll(final Class<T> clazz) {
+        if (!isConnected) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return CompletableFuture.supplyAsync(() -> ((DatabaseProvider<T>) providers.get(clazz)).getAll());
+    }
+
+    /**
+     * Registers and starts database providers for kit-related entities.
+     *
+     * Initializes the provider registry with implementations for KitHolder and
+     * KitRoomPage
+     * backed by the current MongoDB database, then invokes start() on each
+     * registered provider.
+     */
+    private void register() {
+        this.providers.put(LoginHolder.class, new LoginDatabaseProvider(this.database));
+
+        for (final DatabaseProvider<?> provider : providers.values()) {
+            provider.start();
         }
     }
 
-    private static @NotNull File storage(final @NotNull File dataFolder) {
-        final File storage = new File(dataFolder, "storage");
+    @SuppressWarnings("unchecked")
+    public <T> DatabaseProvider<T> getProvider(final Class<T> clazz) {
+        return (DatabaseProvider<T>) providers.get(clazz);
+    }
 
-        if (!storage.exists() && !storage.mkdirs()) {
-            throw new IllegalStateException();
+    public static DatabaseManager getInstance() {
+        if (manager == null) {
+            new DatabaseManager();
+            return manager;
         }
-
-        return storage;
+        return manager;
     }
 }

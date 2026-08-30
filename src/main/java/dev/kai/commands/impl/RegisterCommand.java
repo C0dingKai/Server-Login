@@ -4,7 +4,7 @@ import dev.kai.LoginPlugin;
 import dev.kai.commands.BukkitCommand;
 import dev.kai.manager.LoginManager;
 import dev.kai.manager.SessionManager;
-import dev.kai.model.Login;
+import dev.kai.model.LoginHolder;
 import dev.kai.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -48,8 +48,8 @@ public class RegisterCommand extends BukkitCommand {
                 return;
             }
 
-            final Login login = new Login(player.getUniqueId(), args[0]);
-            loginManager.register(login).thenRun(() -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
+            final LoginHolder loginHolder = new LoginHolder(player.getUniqueId(), args[0]);
+            loginManager.register(loginHolder).thenRun(() -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
                 sessionManager.login(player);
                 player.sendRichMessage("<green>You have successfully registered");
                 player.sendActionBar(ColorUtil.parse("<green>You have successfully registered"));

@@ -6,11 +6,15 @@ lombok = "1.18.42"
 
 placeholderapi = "2.11.6"
 packetevents = "2.13.0"
+mongodb = "5.4.0"
+bson = "5.4.0"
 
 [libraries]
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 placeholderapi = { group = "me.clip", name = "placeholderapi", version.ref = "placeholderapi" }
 packetevents = { group = "com.github.retrooper", name = "packetevents-spigot", version.ref = "packetevents" }
+mongodb = { group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongodb" }
+bson = { group = "org.mongodb", name = "bson", version.ref = "bson" }
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }

@@ -1,10 +1,11 @@
 package dev.kai.manager;
 
-import dev.kai.LoginPlugin;
-import dev.kai.model.Login;
-import dev.kai.storage.dao.LoginDao;
+import dev.kai.model.LoginHolder;
+import dev.kai.storage.DatabaseManager;
+import dev.kai.storage.provider.LoginDatabaseProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,22 +17,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class LoginManager {
 
-    private final @NotNull LoginDao loginDao = LoginPlugin.getInstance().getDatabaseManager().loginDao();
+    private final @NotNull LoginDatabaseProvider loginDatabaseProvider;
 
-    public CompletableFuture<Void> register(final @NotNull Login login) {
-        return loginDao.create(login);
+    public LoginManager() {
+        this.loginDatabaseProvider = (LoginDatabaseProvider) DatabaseManager.getInstance().getProvider(LoginHolder.class);
     }
 
-    public CompletableFuture<Login> find(final @NotNull UUID uuid) {
-        return loginDao.find(uuid);
+    public CompletableFuture<Void> register(final @NotNull LoginHolder loginHolder) {
+        return CompletableFuture.runAsync(() -> loginDatabaseProvider.save(loginHolder));
+    }
+
+    public CompletableFuture<Optional<LoginHolder>> find(final @NotNull UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> loginDatabaseProvider.get(uuid.toString()));
     }
 
     public CompletableFuture<Boolean> exist(final @NotNull UUID uuid) {
-        return loginDao.find(uuid)
-                .thenApply(login -> login != null);
+        return CompletableFuture.supplyAsync(() -> loginDatabaseProvider.get(uuid.toString()).isPresent());
     }
 
-    public CompletableFuture<Void> delete(final UUID uuid) {
-        return loginDao.delete(uuid);
+    public CompletableFuture<Void> delete(final @NotNull UUID uuid) {
+        return CompletableFuture.runAsync(() -> loginDatabaseProvider.delete(uuid.toString()));
     }
 }

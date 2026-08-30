@@ -10,4 +10,4 @@ import java.util.UUID;
  * @author Kai
  * @since 8/28/2026
  */
-public final record Login(@NotNull UUID uuid, @NotNull String password) { }
+public final record LoginHolder(@NotNull UUID uuid, @NotNull String password) { }

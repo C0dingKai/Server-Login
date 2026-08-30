@@ -26,6 +26,9 @@ dependencies {
     compileOnly(libs.lombok)
     compileOnly(libs.packetevents)
     annotationProcessor(libs.lombok)
+
+    implementation(libs.mongodb)
+    implementation(libs.bson)
 }
 
 configurations.all {

@@ -41,15 +41,17 @@ public class LoginCommand extends BukkitCommand {
         final var password = args[0];
 
         loginManager.find(player.getUniqueId())
-                .thenAccept(login -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
+                .thenAccept(optLogin -> Bukkit.getScheduler().runTask(LoginPlugin.getInstance(), () -> {
 
-                    if (login == null) {
+                    if (optLogin.isEmpty()) {
                         player.sendRichMessage("<red>You haven't created an account yet");
                         player.sendActionBar(ColorUtil.parse("<red>You haven't created an account yet"));
 
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 1, 1);
                         return;
                     }
+
+                    final var login = optLogin.get();
 
                     if (sessionManager.isAuthenticated(player)) {
                         player.sendRichMessage("<red>You are already logged in");

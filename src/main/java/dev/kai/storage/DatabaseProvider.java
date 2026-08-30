@@ -1,0 +1,34 @@
+package dev.kai.storage;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface DatabaseProvider<T> {
+
+    /**
+     * Initializes and prepares the database provider for use.
+     * <p>
+     * Implementations perform any startup or resource initialization required so
+     * subsequent calls to the provider's methods operate correctly.
+     */
+    void start();
+
+    /**
+     * Persists the given entity to the database.
+     *
+     * @param t the entity to persist
+     */
+    void save(T t);
+
+    /**
+     * Retrieves the stored value associated with the given key.
+     *
+     * @param key the unique string identifier for the stored object
+     * @return an Optional containing the object if found, or an empty Optional if no value exists for the key
+     */
+    @NotNull Optional<T> get(String key);
+
+    @NotNull List<T> getAll();
+}

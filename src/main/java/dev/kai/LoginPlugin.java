@@ -26,7 +26,6 @@ public final class LoginPlugin extends JavaPlugin {
 
     @Getter
     private static LoginPlugin instance;
-    private DatabaseManager databaseManager;
     private LoginManager loginManager;
     private SessionManager sessionManager;
 
@@ -44,8 +43,7 @@ public final class LoginPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        databaseManager = new DatabaseManager(getDataFolder());
-        databaseManager.connect();
+        this.connectDatabase();
 
         loginManager = new LoginManager();
         sessionManager = new SessionManager();
@@ -69,8 +67,22 @@ public final class LoginPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (databaseManager != null) databaseManager.shutdown();
         Bukkit.getScheduler().cancelTasks(this);
+        DatabaseManager.getInstance().destroy();
         PacketEvents.getAPI().terminate();
+    }
+
+    private void connectDatabase() {
+        final String host = System.getenv("MONGODB_HOST");
+        final String password = System.getenv("MONGODB_PASSWORD");
+        final String username = System.getenv("MONGODB_USERNAME");
+        final String database = System.getenv("MONGODB_DATABASE");
+
+        DatabaseManager.getInstance().connect(
+                host,
+                27017,
+                username,
+                password,
+                database);
     }
 }
