@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * This is an interesting Class
  *
- * @author yyuh
+ * @author yyuh kawai
  * @since 03.01.26
  */
 public final class DatabaseManager {
